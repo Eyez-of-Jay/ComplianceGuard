@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Send, AlertTriangle, CheckCircle, XCircle, Shield } from 'lucide-react';
 import { analyzeAction, type Action, type ComplianceResponse } from '../lib/complianceEngine';
+import { useAuth } from '../lib/authContext';
 
 const ACTION_TYPES = [
   { value: 'export_customer_list', label: 'Export Customer List', description: 'Download customer database to CSV' },
@@ -11,6 +12,7 @@ const ACTION_TYPES = [
 ];
 
 export function StaffInterface() {
+  const { user } = useAuth();
   const [selectedAction, setSelectedAction] = useState('');
   const [actionDetails, setActionDetails] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -18,7 +20,7 @@ export function StaffInterface() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAction) return;
+    if (!selectedAction || !user) return;
 
     setIsAnalyzing(true);
     setResponse(null);
@@ -27,8 +29,8 @@ export function StaffInterface() {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     const action: Action = {
-      employee_id: 'EMP-4729',
-      employee_name: 'Sarah Johnson',
+      employee_id: user.employeeId,
+      employee_name: user.name,
       action_type: selectedAction,
       action_payload: actionDetails || 'No additional details provided',
       timestamp: new Date().toISOString(),
@@ -132,9 +134,9 @@ export function StaffInterface() {
 
             <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
               <p className="text-xs text-slate-600">
-                <strong>Current User:</strong> Sarah Johnson (EMP-4729)<br />
-                <strong>Department:</strong> Sales<br />
-                <strong>Clearance Level:</strong> Standard
+                <strong>Current User:</strong> {user?.name} ({user?.employeeId})<br />
+                <strong>Department:</strong> {user?.department}<br />
+                <strong>Clearance Level:</strong> {user?.clearanceLevel}
               </p>
             </div>
           </div>

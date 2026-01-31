@@ -1,7 +1,8 @@
-import { Shield, AlertTriangle, TrendingUp, Users, Activity, Clock } from 'lucide-react';
+import { Shield, AlertTriangle, TrendingUp, Users, Activity, Clock, CheckCircle, Ban } from 'lucide-react';
+import { useState } from 'react';
 
 // Mock data for dashboard
-const mockAlerts = [
+const initialMockAlerts = [
   {
     id: 'CASE-9247',
     employee: 'Sarah Johnson',
@@ -72,6 +73,24 @@ const stats = [
 ];
 
 export function ComplianceDashboard() {
+  const [alerts, setAlerts] = useState(initialMockAlerts);
+
+  const handleApprove = (alertId: string) => {
+    setAlerts(prevAlerts =>
+      prevAlerts.map(alert =>
+        alert.id === alertId ? { ...alert, status: 'resolved' as const } : alert
+      )
+    );
+  };
+
+  const handleBlock = (alertId: string) => {
+    setAlerts(prevAlerts =>
+      prevAlerts.map(alert =>
+        alert.id === alertId ? { ...alert, status: 'resolved' as const } : alert
+      )
+    );
+  };
+
   const getRiskBadge = (risk: string) => {
     const styles = {
       CRITICAL: 'bg-red-100 text-red-700 border-red-200',
@@ -124,15 +143,21 @@ export function ComplianceDashboard() {
         </div>
 
         <div className="divide-y divide-slate-200">
-          {mockAlerts.map((alert) => (
+          {alerts.map((alert) => (
             <div key={alert.id} className="p-6 hover:bg-slate-50 transition-colors">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <span className="font-medium text-slate-900">{alert.id}</span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getRiskBadge(alert.risk)}`}>
                       {alert.risk}
                     </span>
+                    {(alert.risk === 'HIGH' || alert.risk === 'CRITICAL') && alert.status === 'pending' && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-500 text-white rounded-full text-xs font-medium animate-pulse">
+                        <AlertTriangle className="w-3 h-3" />
+                        Requires Immediate Action
+                      </span>
+                    )}
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(alert.status)}`}>
                       {alert.status}
                     </span>
@@ -142,14 +167,24 @@ export function ComplianceDashboard() {
                   </div>
                   <div className="text-xs text-slate-400">{alert.timestamp}</div>
                 </div>
-                <div className="flex gap-2 ml-4">
-                  <button className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Review
-                  </button>
-                  <button className="px-3 py-1.5 text-sm border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
-                    Dismiss
-                  </button>
-                </div>
+                {alert.status !== 'resolved' && (
+                  <div className="flex gap-2 ml-4">
+                    <button 
+                      onClick={() => handleApprove(alert.id)}
+                      className="flex items-center gap-1.5 px-4 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      Approve Action
+                    </button>
+                    <button 
+                      onClick={() => handleBlock(alert.id)}
+                      className="flex items-center gap-1.5 px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      <Ban className="w-4 h-4" />
+                      Block Action
+                    </button>
+                  </div>
+                )}
               </div>
               
               {/* Quick Actions */}

@@ -1,6 +1,7 @@
-import { FileText, Download, Filter } from 'lucide-react';
+import { FileText, Download, Filter, CheckCircle, Ban } from 'lucide-react';
+import { useState } from 'react';
 
-const mockAuditEntries = [
+const initialMockAuditEntries = [
   {
     id: 'AUD-19472',
     timestamp: '2026-01-30T14:23:15Z',
@@ -9,7 +10,8 @@ const mockAuditEntries = [
     decision: 'BLOCK',
     risk: 'CRITICAL',
     policy: 'Data Privacy Policy § 4.2',
-    officer: 'System Automated'
+    officer: 'System Automated',
+    status: 'pending'
   },
   {
     id: 'AUD-19471',
@@ -19,7 +21,8 @@ const mockAuditEntries = [
     decision: 'ESCALATE',
     risk: 'HIGH',
     policy: 'Information Security § 3.4',
-    officer: 'Jane Wilson'
+    officer: 'Jane Wilson',
+    status: 'pending'
   },
   {
     id: 'AUD-19470',
@@ -29,7 +32,8 @@ const mockAuditEntries = [
     decision: 'ESCALATE',
     risk: 'HIGH',
     policy: 'Access Control § 2.5',
-    officer: 'Jane Wilson'
+    officer: 'Jane Wilson',
+    status: 'pending'
   },
   {
     id: 'AUD-19469',
@@ -39,7 +43,8 @@ const mockAuditEntries = [
     decision: 'WARN',
     risk: 'MEDIUM',
     policy: 'Internal Controls § 8.1',
-    officer: 'System Automated'
+    officer: 'System Automated',
+    status: 'resolved'
   },
   {
     id: 'AUD-19468',
@@ -49,7 +54,8 @@ const mockAuditEntries = [
     decision: 'BLOCK',
     risk: 'CRITICAL',
     policy: 'Data Privacy § 6.3',
-    officer: 'System Automated'
+    officer: 'System Automated',
+    status: 'resolved'
   },
   {
     id: 'AUD-19467',
@@ -59,7 +65,8 @@ const mockAuditEntries = [
     decision: 'WARN',
     risk: 'MEDIUM',
     policy: 'Information Security § 3.4',
-    officer: 'System Automated'
+    officer: 'System Automated',
+    status: 'resolved'
   },
   {
     id: 'AUD-19466',
@@ -69,7 +76,8 @@ const mockAuditEntries = [
     decision: 'ESCALATE',
     risk: 'CRITICAL',
     policy: 'Data Privacy § 4.2',
-    officer: 'Robert Martinez'
+    officer: 'Robert Martinez',
+    status: 'resolved'
   },
   {
     id: 'AUD-19465',
@@ -79,11 +87,30 @@ const mockAuditEntries = [
     decision: 'BLOCK',
     risk: 'HIGH',
     policy: 'Access Control § 2.5',
-    officer: 'System Automated'
+    officer: 'System Automated',
+    status: 'resolved'
   }
 ];
 
 export function AuditLog() {
+  const [auditEntries, setAuditEntries] = useState(initialMockAuditEntries);
+
+  const handleApprove = (entryId: string) => {
+    setAuditEntries(prevEntries =>
+      prevEntries.map(entry =>
+        entry.id === entryId ? { ...entry, status: 'resolved' as const, officer: 'Approved by Officer' } : entry
+      )
+    );
+  };
+
+  const handleBlock = (entryId: string) => {
+    setAuditEntries(prevEntries =>
+      prevEntries.map(entry =>
+        entry.id === entryId ? { ...entry, status: 'resolved' as const, officer: 'Blocked by Officer' } : entry
+      )
+    );
+  };
+
   const formatTimestamp = (iso: string) => {
     const date = new Date(iso);
     return date.toLocaleString('en-US', {
@@ -187,10 +214,13 @@ export function AuditLog() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                   Reviewed By
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {mockAuditEntries.map((entry) => (
+              {auditEntries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm font-medium text-blue-600">{entry.id}</span>
@@ -211,12 +241,41 @@ export function AuditLog() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRiskBadge(entry.risk)}`}>
-                      {entry.risk}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRiskBadge(entry.risk)}`}>
+                        {entry.risk}
+                      </span>
+                      {(entry.risk === 'HIGH' || entry.risk === 'CRITICAL') && entry.status === 'pending' && (
+                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" title="High Risk - Requires Attention"></span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-slate-600">{entry.officer}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {entry.status === 'pending' ? (
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleApprove(entry.id)}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                          title="Approve Action"
+                        >
+                          <CheckCircle className="w-3 h-3" />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleBlock(entry.id)}
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                          title="Block Action"
+                        >
+                          <Ban className="w-3 h-3" />
+                          Block
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-green-600 font-medium">Resolved</span>
+                    )}
                   </td>
                 </tr>
               ))}
