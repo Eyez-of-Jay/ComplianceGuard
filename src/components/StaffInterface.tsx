@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Send, AlertTriangle, CheckCircle, XCircle, Shield } from 'lucide-react';
 import { analyzeAction, type Action, type ComplianceResponse } from '../lib/complianceEngine';
 import { useAuth } from '../lib/authContext';
+import { callComplianceAgent } from '../lib/ibm';
 
 const ACTION_TYPES = [
   { value: 'export_customer_list', label: 'Export Customer List', description: 'Download customer database to CSV' },
@@ -18,27 +19,43 @@ export function StaffInterface() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [response, setResponse] = useState<ComplianceResponse | null>(null);
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!selectedAction || !user) return;
+
+  //   setIsAnalyzing(true);
+  //   setResponse(null);
+
+  //   // Simulate AI processing time
+  //   await new Promise(resolve => setTimeout(resolve, 1500));
+
+  //   const action: Action = {
+  //     employee_id: user.employeeId,
+  //     employee_name: user.name,
+  //     action_type: selectedAction,
+  //     action_payload: actionDetails || 'No additional details provided',
+  //     timestamp: new Date().toISOString(),
+  //   };
+
+  //   const result = analyzeAction(action);
+  //   setResponse(result);
+  //   setIsAnalyzing(false);
+  // };
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAction || !user) return;
-
     setIsAnalyzing(true);
-    setResponse(null);
 
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const action: Action = {
-      employee_id: user.employeeId,
-      employee_name: user.name,
-      action_type: selectedAction,
-      action_payload: actionDetails || 'No additional details provided',
-      timestamp: new Date().toISOString(),
-    };
-
-    const result = analyzeAction(action);
-    setResponse(result);
-    setIsAnalyzing(false);
+    try {
+      // This replaces the 'simulate AI processing' in your current code
+      const aiResult = await callComplianceAgent(actionDetails);
+      setResponse(aiResult.output); // Update UI with real AI data
+    } catch (error) {
+      console.error("AI Agent Error:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const getRiskColor = (risk: string) => {
