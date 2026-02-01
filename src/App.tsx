@@ -1,11 +1,14 @@
 import { RouterProvider } from 'react-router';
 import { router } from './routes';
 import { AuthProvider } from './lib/authContext';
+import { AlertsProvider } from './lib/alertsContext';
 
 function App() {
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
+      <AlertsProvider>
+        <RouterProvider router={router} />
+      </AlertsProvider>
     </AuthProvider>
   );
 }

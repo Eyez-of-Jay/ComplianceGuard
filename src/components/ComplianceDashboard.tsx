@@ -88,6 +88,8 @@ export function ComplianceDashboard() {
   const handleBlock = (alertId: string) => {
     // Here you can add logic to call a 'Block User' AI Agent skill
     setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, status: 'resolved' } : a));
+    const sharedAlert = activeAlerts.find(a => a.id === alertId);
+    if (sharedAlert) sharedAlert.status = 'resolved';
     console.log(`Executing Agentic Block for ${alertId}`);
   };
   const getRiskBadge = (risk: string) => {
