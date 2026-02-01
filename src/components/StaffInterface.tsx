@@ -62,6 +62,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
 
     setResponse(finalResult);
+    // VERIFY: This log confirms the data is being sent to the Context
+    console.log("Sending alert to Dashboard Context:", finalResult); // DEBUG LOG
     addAlert(finalResult); // Successfully links to Dashboard
 
   } catch (error) {

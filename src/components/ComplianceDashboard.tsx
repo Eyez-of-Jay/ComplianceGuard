@@ -1,44 +1,7 @@
 import { Shield, AlertTriangle, TrendingUp, Users, Activity, Clock, CheckCircle, Ban } from 'lucide-react';
-import { activeAlerts, type DashboardAlert } from '../lib/complianceEngine';
-import { useState, useEffect } from 'react';
+import { type DashboardAlert } from '../lib/complianceEngine';
 import { useAlerts } from "../lib/alertsContext";
 
-// Mock data for dashboard
-const initialMockAlerts = [
-  {
-    id: 'CASE-9247',
-    employee: 'Sarah Johnson',
-    // FIX: Change string to the Action object required by your interface
-    action: { action_type: 'export_customer_list' }, 
-    risk: 'CRITICAL',
-    timestamp: '2 minutes ago',
-    status: 'pending'
-  },
-  {
-    id: 'CASE-9243',
-    employee: 'Michael Chen',
-    action: { action_type: 'external_share' },
-    risk: 'HIGH',
-    timestamp: '14 minutes ago',
-    status: 'pending'
-  },
-  {
-    id: 'CASE-9238',
-    employee: 'Emma Rodriguez',
-    action:  { action_type: 'Access Restricted Data' },
-    risk: 'HIGH',
-    timestamp: '1 hour ago',
-    status: 'reviewing'
-  },
-  {
-    id: 'CASE-9227',
-    employee: 'David Kim',
-    action:  { action_type: 'Bypass Approval Flow' },
-    risk: 'MEDIUM',
-    timestamp: '3 hours ago',
-    status: 'resolved'
-  }
-];
 
 const stats = [
   {
@@ -79,6 +42,8 @@ export function ComplianceDashboard() {
  // Initialize with the shared activeAlerts array
   const { alerts, updateStatus } = useAlerts();
 
+  console.log("Dashboard Rendered");
+  console.log("Current Alerts in Dashboard State:", alerts);
 
  const handleBlock = (alertId: string) => {
   updateStatus(alertId, "resolved");
