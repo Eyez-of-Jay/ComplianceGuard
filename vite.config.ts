@@ -58,25 +58,19 @@
       //   open: true,
       // },
      server: {
-      proxy: {
-        '/ibm-auth': {
-          target: 'https://iam.cloud.ibm.com',
-          changeOrigin: true,
-          secure: true, // Ensures SSL is respected
-          rewrite: (path) => path.replace(/^\/ibm-auth/, ''),
-        },
-        '/ibm-orchestrate': {
-          target: 'https://api.eu-gb.watson-orchestrate.cloud.ibm.com',
-          changeOrigin: true,
-          secure: true,
-          // IBM requires the Host header to match the target
-          configure: (proxy, _options) => {
-            proxy.on('error', (err, _req, _res) => {
-              console.log('proxy error', err);
-            });
-          },
-          rewrite: (path) => path.replace(/^\/ibm-orchestrate/, ''),
-        }
+    proxy: {
+      // Your existing auth proxy
+      '/ibm-auth': {
+        target: 'https://iam.cloud.ibm.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ibm-auth/, ''),
+      },
+      // ADD THIS: Your new orchestrate proxy
+      '/ibm-orchestrate': {
+        target: 'https://api.eu-gb.watson-orchestrate.cloud.ibm.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ibm-orchestrate/, ''),
       }
-    },
+    }
+  },
     });
