@@ -3,6 +3,7 @@ import { Send, AlertTriangle, CheckCircle, XCircle, Shield } from 'lucide-react'
 import { analyzeAction, type Action, type ComplianceResponse } from '../lib/complianceEngine';
 import { useAuth } from '../lib/authContext'; 
 import { callComplianceAgent, waitForAgentResult } from '../lib/ibm';
+import { addAlertToDashboard } from '../lib/complianceEngine';
 
 const ACTION_TYPES = [
   { value: 'export_customer_list', label: 'Export Customer List', description: 'Download customer database to CSV' },
@@ -22,30 +23,40 @@ export function StaffInterface() {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsAnalyzing(true);
-  setResponse(null);
-
+  
   try {
     const { runData, access_token } = await callComplianceAgent(actionDetails);
     const finalMessage = await waitForAgentResult(runData.run_id, access_token);
-    
     const rawText = finalMessage.content[0].text;
 
-  try {
-      const parsedResponse = JSON.parse(rawText);
-      setResponse({ 
-        ...parsedResponse, 
-        action: selectedAction as unknown as Action // CAST TO ACTION TYPE HERE
-      });
+    // Build the full Action object required by the engine types
+    const currentAction: Action = {
+      employee_id: user?.employeeId || 'Unknown',
+      employee_name: user?.name || 'Unknown',
+      action_type: selectedAction,
+      action_payload: actionDetails,
+      timestamp: new Date().toISOString()
+    };
+
+    let finalResult: ComplianceResponse;
+
+    try {
+      const parsed = JSON.parse(rawText);
+      finalResult = { ...parsed, action: currentAction };
     } catch {
-      setResponse({
-        action: selectedAction as unknown as Action, // AND CAST HERE
+      finalResult = {
+        action: currentAction,
         decision: rawText.includes("blocked") ? "BLOCK" : "ALLOW",
         risk: "HIGH",
         reason: rawText,
         policy_citations: [],
         recommended_actions: ["Review corporate security protocols"]
-      });
+      };
     }
+
+    setResponse(finalResult);
+    addAlertToDashboard(finalResult); // Successfully links to Dashboard
+
   } catch (error) {
     console.error("Agent Integration Error:", error);
   } finally {

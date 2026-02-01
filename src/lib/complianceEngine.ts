@@ -20,6 +20,27 @@ export interface ComplianceResponse {
   action: Action;
 }
 
+export interface DashboardAlert extends ComplianceResponse {
+  id: string;
+  employee: string;
+  timestamp: string;
+  status: 'pending' | 'reviewing' | 'resolved';
+}
+
+// Update the existing escalations array to hold these alerts
+export const activeAlerts: DashboardAlert[] = [];
+
+export function addAlertToDashboard(response: ComplianceResponse) {
+  const newAlert: DashboardAlert = {
+    ...response,
+    id: `CASE-${Math.floor(1000 + Math.random() * 9000)}`,
+    employee: response.action.employee_name,
+    timestamp: 'Just now',
+    status: 'pending'
+  };
+  activeAlerts.unshift(newAlert);
+}
+
 // Mock compliance analysis engine
 export function analyzeAction(action: Action): ComplianceResponse {
   const responses: Record<string, ComplianceResponse> = {

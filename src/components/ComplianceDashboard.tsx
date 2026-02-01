@@ -1,12 +1,14 @@
 import { Shield, AlertTriangle, TrendingUp, Users, Activity, Clock, CheckCircle, Ban } from 'lucide-react';
-import { useState } from 'react';
+import { activeAlerts, type DashboardAlert } from '../lib/complianceEngine';
+import { useState, useEffect } from 'react';
 
 // Mock data for dashboard
 const initialMockAlerts = [
   {
     id: 'CASE-9247',
     employee: 'Sarah Johnson',
-    action: 'Export Customer List',
+    // FIX: Change string to the Action object required by your interface
+    action: { action_type: 'export_customer_list' }, 
     risk: 'CRITICAL',
     timestamp: '2 minutes ago',
     status: 'pending'
@@ -14,7 +16,7 @@ const initialMockAlerts = [
   {
     id: 'CASE-9243',
     employee: 'Michael Chen',
-    action: 'Share File Externally',
+    action: { action_type: 'external_share' },
     risk: 'HIGH',
     timestamp: '14 minutes ago',
     status: 'pending'
@@ -22,7 +24,7 @@ const initialMockAlerts = [
   {
     id: 'CASE-9238',
     employee: 'Emma Rodriguez',
-    action: 'Access Restricted Data',
+    action:  { action_type: 'Access Restricted Data' },
     risk: 'HIGH',
     timestamp: '1 hour ago',
     status: 'reviewing'
@@ -30,7 +32,7 @@ const initialMockAlerts = [
   {
     id: 'CASE-9227',
     employee: 'David Kim',
-    action: 'Bypass Approval Flow',
+    action:  { action_type: 'Bypass Approval Flow' },
     risk: 'MEDIUM',
     timestamp: '3 hours ago',
     status: 'resolved'
@@ -73,24 +75,21 @@ const stats = [
 ];
 
 export function ComplianceDashboard() {
-  const [alerts, setAlerts] = useState(initialMockAlerts);
+ // Initialize with the shared activeAlerts array
+  const [alerts, setAlerts] = useState<DashboardAlert[]>(activeAlerts);
 
-  const handleApprove = (alertId: string) => {
-    setAlerts(prevAlerts =>
-      prevAlerts.map(alert =>
-        alert.id === alertId ? { ...alert, status: 'resolved' as const } : alert
-      )
-    );
-  };
+  // Optional: Add a useEffect to refresh the list if you aren't using a Global State manager
+  useEffect(() => {
+    // This ensures that every time the user navigates to the dashboard, 
+    // it sees the latest AI results pushed from the Staff Interface
+    setAlerts([...activeAlerts]);
+  }, []);
 
   const handleBlock = (alertId: string) => {
-    setAlerts(prevAlerts =>
-      prevAlerts.map(alert =>
-        alert.id === alertId ? { ...alert, status: 'resolved' as const } : alert
-      )
-    );
+    // Here you can add logic to call a 'Block User' AI Agent skill
+    setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, status: 'resolved' } : a));
+    console.log(`Executing Agentic Block for ${alertId}`);
   };
-
   const getRiskBadge = (risk: string) => {
     const styles = {
       CRITICAL: 'bg-red-100 text-red-700 border-red-200',
@@ -109,6 +108,10 @@ export function ComplianceDashboard() {
     };
     return styles[status as keyof typeof styles] || styles.pending;
   };
+
+  function handleApprove(id: string): void {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -163,7 +166,8 @@ export function ComplianceDashboard() {
                     </span>
                   </div>
                   <div className="text-sm text-slate-600 mb-1">
-                    <strong>{alert.employee}</strong> attempted: {alert.action}
+                    {/* Use .action_type to render the string instead of the whole object */}
+                    <strong>{alert.employee}</strong> attempted: {alert.action.action_type}
                   </div>
                   <div className="text-xs text-slate-400">{alert.timestamp}</div>
                 </div>
