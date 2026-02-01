@@ -8,24 +8,24 @@ type AlertsContextType = {
 };
 
 const AlertsContext = createContext<AlertsContextType | null>(null);
+
+// Ensure all required properties from DashboardAlert/ComplianceResponse are present
 const initialMockAlerts: DashboardAlert[] = [
   {
     id: 'CASE-9247',
     employee: 'Sarah Johnson',
     action: { 
-      employee_id: 'EMP-001',
-      employee_name: 'Sarah Johnson',
-      action_type: 'export_customer_list',
-      action_payload: 'Download customer database',
-      timestamp: new Date().toISOString()
+      employee_id: 'EMP-001', 
+      employee_name: 'Sarah Johnson', 
+      action_type: 'export_customer_list', 
+      action_payload: '', 
+      timestamp: new Date().toISOString() 
     },
     risk: 'CRITICAL',
-    decision: 'BLOCK', // Added missing property
-    reason: 'Attempted unauthorized export of customer database.', // Added missing property
-    policy_citations: [ // Added missing property
-      { section: 'Data Privacy § 4.2', text: 'Authorization required for exports.' }
-    ],
-    recommended_actions: ['Revoke data access'], // Added missing property
+    decision: 'BLOCK',
+    reason: 'Unauthorized export attempt.',
+    policy_citations: [],
+    recommended_actions: [],
     timestamp: '2 minutes ago',
     status: 'pending'
   },
@@ -33,22 +33,21 @@ const initialMockAlerts: DashboardAlert[] = [
     id: 'CASE-9243',
     employee: 'Michael Chen',
     action: { 
-      employee_id: 'EMP-002',
-      employee_name: 'Michael Chen',
-      action_type: 'external_share',
-      action_payload: 'Shared project file',
-      timestamp: new Date().toISOString()
+      employee_id: 'EMP-002', 
+      employee_name: 'Michael Chen', 
+      action_type: 'external_share', 
+      action_payload: '', 
+      timestamp: new Date().toISOString() 
     },
     risk: 'HIGH',
-    decision: 'ESCALATE', // Added missing property
-    reason: 'External file sharing detected.', // Added missing property
-    policy_citations: [], // Added missing property
-    recommended_actions: ['Security review'], // Added missing property
+    decision: 'ESCALATE',
+    reason: 'Sensitive file shared externally.',
+    policy_citations: [],
+    recommended_actions: [],
     timestamp: '14 minutes ago',
     status: 'pending'
   }
 ];
-
 
 export function AlertsProvider({ children }: { children: React.ReactNode }) {
   const [alerts, setAlerts] = useState<DashboardAlert[]>(initialMockAlerts);
@@ -62,11 +61,8 @@ export function AlertsProvider({ children }: { children: React.ReactNode }) {
       status: "pending",
     };
 
-    setAlerts((prev) => {
-      const updated = [newAlert, ...prev];
-      console.log("Context State Updated. New Count:", updated.length); // DEBUG
-      return updated;
-    });
+    // Functional update ensures we prepend to the most current state
+    setAlerts((prev) => [newAlert, ...prev]);
   };
 
   const updateStatus = (id: string, status: DashboardAlert["status"]) => {
