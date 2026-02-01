@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Send, AlertTriangle, CheckCircle, XCircle, Shield } from 'lucide-react';
 import { analyzeAction, type Action, type ComplianceResponse } from '../lib/complianceEngine';
-import { useAuth } from '../lib/authContext';
+import { useAuth } from '../lib/authContext'; 
 import { callComplianceAgent, waitForAgentResult } from '../lib/ibm';
 
 const ACTION_TYPES = [
@@ -19,35 +19,39 @@ export function StaffInterface() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [response, setResponse] = useState<ComplianceResponse | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAnalyzing(true);
-    setResponse(null); // Clear previous response
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsAnalyzing(true);
+  setResponse(null);
 
-    try {
-      // 1. Start the run and get the token used for it
-      const { runData, access_token } = await callComplianceAgent(actionDetails);
-      
-      if (!runData.run_id) {
-          throw new Error("No run_id received from Agent");
-      }
+  try {
+    const { runData, access_token } = await callComplianceAgent(actionDetails);
+    const finalMessage = await waitForAgentResult(runData.run_id, access_token);
+    
+    const rawText = finalMessage.content[0].text;
 
-      // 2. Poll using the run_id and the token we just received
-      const finalMessage = await waitForAgentResult(runData.run_id, access_token);
-      
-      // 3. Parse and Display the real data
-      // Note: Watson messages usually return text in finalMessage.content[0].text
-      // You might need to JSON.parse() it if your agent returns a stringified JSON
-      const aiContent = JSON.parse(finalMessage.content[0].text);
-      setResponse(aiContent); 
-      
-    } catch (error) {
-      console.error("Agent Integration Error:", error);
-      // Optional: add a toast or error state here for the UI
-    } finally {
-      setIsAnalyzing(false);
+  try {
+      const parsedResponse = JSON.parse(rawText);
+      setResponse({ 
+        ...parsedResponse, 
+        action: selectedAction as unknown as Action // CAST TO ACTION TYPE HERE
+      });
+    } catch {
+      setResponse({
+        action: selectedAction as unknown as Action, // AND CAST HERE
+        decision: rawText.includes("blocked") ? "BLOCK" : "ALLOW",
+        risk: "HIGH",
+        reason: rawText,
+        policy_citations: [],
+        recommended_actions: ["Review corporate security protocols"]
+      });
     }
-  };
+  } catch (error) {
+    console.error("Agent Integration Error:", error);
+  } finally {
+    setIsAnalyzing(false);
+  }
+};
 
 
   const getRiskColor = (risk: string) => {
