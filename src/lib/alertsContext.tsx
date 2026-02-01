@@ -7,6 +7,7 @@ type AlertsContextType = {
   updateStatus: (id: string, status: DashboardAlert["status"]) => void;
 };
 
+
 const AlertsContext = createContext<AlertsContextType | null>(null);
 
 // Ensure all required properties from DashboardAlert/ComplianceResponse are present
