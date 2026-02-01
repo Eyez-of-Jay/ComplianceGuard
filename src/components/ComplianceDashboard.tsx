@@ -1,6 +1,7 @@
 import { Shield, AlertTriangle, TrendingUp, Users, Activity, Clock, CheckCircle, Ban } from 'lucide-react';
 import { activeAlerts, type DashboardAlert } from '../lib/complianceEngine';
 import { useState, useEffect } from 'react';
+import { useAlerts } from "../lib/alertsContext";
 
 // Mock data for dashboard
 const initialMockAlerts = [
@@ -76,22 +77,13 @@ const stats = [
 
 export function ComplianceDashboard() {
  // Initialize with the shared activeAlerts array
-  const [alerts, setAlerts] = useState<DashboardAlert[]>(activeAlerts);
+  const { alerts, updateStatus } = useAlerts();
 
-  // Optional: Add a useEffect to refresh the list if you aren't using a Global State manager
-  useEffect(() => {
-    // This ensures that every time the user navigates to the dashboard, 
-    // it sees the latest AI results pushed from the Staff Interface
-    setAlerts([...activeAlerts]);
-  }, []);
 
-  const handleBlock = (alertId: string) => {
-    // Here you can add logic to call a 'Block User' AI Agent skill
-    setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, status: 'resolved' } : a));
-    const sharedAlert = activeAlerts.find(a => a.id === alertId);
-    if (sharedAlert) sharedAlert.status = 'resolved';
-    console.log(`Executing Agentic Block for ${alertId}`);
-  };
+ const handleBlock = (alertId: string) => {
+  updateStatus(alertId, "resolved");
+  console.log(`Executing Agentic Block for ${alertId}`);
+};
   const getRiskBadge = (risk: string) => {
     const styles = {
       CRITICAL: 'bg-red-100 text-red-700 border-red-200',

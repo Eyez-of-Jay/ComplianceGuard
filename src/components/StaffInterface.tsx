@@ -4,6 +4,7 @@ import { analyzeAction, type Action, type ComplianceResponse } from '../lib/comp
 import { useAuth } from '../lib/authContext'; 
 import { callComplianceAgent, waitForAgentResult } from '../lib/ibm';
 import { addAlertToDashboard } from '../lib/complianceEngine';
+import { useAlerts } from "../lib/alertsContext";
 
 const ACTION_TYPES = [
   { value: 'export_customer_list', label: 'Export Customer List', description: 'Download customer database to CSV' },
@@ -15,6 +16,7 @@ const ACTION_TYPES = [
 
 export function StaffInterface() {
   const { user } = useAuth();
+  const { addAlert } = useAlerts();
   const [selectedAction, setSelectedAction] = useState('');
   const [actionDetails, setActionDetails] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -25,7 +27,12 @@ const handleSubmit = async (e: React.FormEvent) => {
   setIsAnalyzing(true);
   
   try {
-    const { runData, access_token } = await callComplianceAgent(actionDetails);
+    const payload = JSON.stringify({
+      action_type: selectedAction,
+      details: actionDetails,
+      employee: user?.name,
+    });
+    const { runData, access_token } = await callComplianceAgent(payload);
     const finalMessage = await waitForAgentResult(runData.run_id, access_token);
     const rawText = finalMessage.content[0].text;
 
@@ -55,7 +62,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
 
     setResponse(finalResult);
-    addAlertToDashboard(finalResult); // Successfully links to Dashboard
+    addAlert(finalResult); // Successfully links to Dashboard
 
   } catch (error) {
     console.error("Agent Integration Error:", error);
